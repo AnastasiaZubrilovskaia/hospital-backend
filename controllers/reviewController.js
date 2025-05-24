@@ -1,41 +1,45 @@
-const { Review, Doctor, Appointment } = require('../models');
+const { Review, Doctor, Appointment, Patient } = require('../models');
 
+// Создание нового отзыва
 const createReview = async (req, res) => {
   try {
-    const { doctorId, rating, comment } = req.body;
+    const doctorId = parseInt(req.params.doctorId, 10); // ⚠️ берем из params, а не body
+    const { rating, comment } = req.body;
     const patientId = req.patient.id;
 
-    // Проверка, что пациент действительно был у этого врача
-    const hasAppointment = await Appointment.findOne({
-      where: {
-        PatientId: patientId,
-        DoctorId: doctorId,
-        status: 'completed'
-      }
-    });
-
-    if (!hasAppointment) {
-      return res.status(403).json({ message: 'You can only review doctors you have visited' });
+    if (!doctorId || isNaN(doctorId)) {
+      return res.status(400).json({ message: 'Некорректный ID врача' });
     }
 
-    // Проверка, что отзыв еще не оставлен
+    // const hasAppointment = await Appointment.findOne({
+    //   where: {
+    //     patientId,
+    //     doctorId,
+    //     status: 'completed'
+    //   }
+    // });
+
+    // if (!hasAppointment) {
+    //   return res.status(403).json({ message: 'Вы можете оставить отзыв только после приема у этого врача.' });
+    // }
+
     const existingReview = await Review.findOne({
       where: {
-        PatientId: patientId,
-        DoctorId: doctorId
+        patientId,
+        doctorId
       }
     });
 
     if (existingReview) {
-      return res.status(400).json({ message: 'You have already reviewed this doctor' });
+      return res.status(400).json({ message: 'Вы уже оставили отзыв этому врачу.' });
     }
 
     const review = await Review.create({
       rating,
       comment,
       status: 'pending',
-      PatientId: patientId,
-      DoctorId: doctorId
+      patientId,
+      doctorId
     });
 
     res.status(201).json(review);
@@ -44,11 +48,18 @@ const createReview = async (req, res) => {
   }
 };
 
+
+// Получение отзывов о конкретном враче
 const getDoctorReviews = async (req, res) => {
   try {
+    const doctorId = parseInt(req.params.doctorId, 10);
+    if (isNaN(doctorId)) {
+      return res.status(400).json({ message: 'Некорректный ID врача' });
+    }
+
     const reviews = await Review.findAll({
-      where: { 
-        DoctorId: req.params.doctorId,
+      where: {
+        doctorId,
         status: 'approved'
       },
       include: [
@@ -56,42 +67,48 @@ const getDoctorReviews = async (req, res) => {
       ],
       order: [['createdAt', 'DESC']]
     });
+
     res.json(reviews);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+// Получение всех отзывов пациента
 const getPatientReviews = async (req, res) => {
   try {
+    const patientId = req.patient.id;
+
     const reviews = await Review.findAll({
-      where: { PatientId: req.patient.id },
+      where: { patientId },
       include: [
         { model: Doctor, attributes: ['firstName', 'lastName'] }
       ],
       order: [['createdAt', 'DESC']]
     });
+
     res.json(reviews);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
+// Обновление отзыва (если он еще не одобрен)
 const updateReview = async (req, res) => {
   try {
     const review = await Review.findOne({
       where: {
         id: req.params.id,
-        PatientId: req.patient.id
+        patientId: req.patient.id
       }
     });
 
     if (!review) {
-      return res.status(404).json({ message: 'Review not found' });
+      return res.status(404).json({ message: 'Отзыв не найден' });
     }
 
     if (review.status !== 'pending') {
-      return res.status(403).json({ message: 'Only pending reviews can be updated' });
+      return res.status(403).json({ message: 'Можно редактировать только отзывы в статусе "на модерации"' });
     }
 
     await review.update(req.body);
@@ -101,21 +118,22 @@ const updateReview = async (req, res) => {
   }
 };
 
+// Удаление отзыва
 const deleteReview = async (req, res) => {
   try {
     const review = await Review.findOne({
       where: {
         id: req.params.id,
-        PatientId: req.patient.id
+        patientId: req.patient.id
       }
     });
 
     if (!review) {
-      return res.status(404).json({ message: 'Review not found' });
+      return res.status(404).json({ message: 'Отзыв не найден' });
     }
 
     await review.destroy();
-    res.json({ message: 'Review deleted successfully' });
+    res.json({ message: 'Отзыв успешно удален' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

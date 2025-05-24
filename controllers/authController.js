@@ -43,11 +43,13 @@ const login = async (req, res) => {
 const getProfile = async (req, res) => {
   try {
     const patient = await authService.getPatientProfile(req.patient.id);
+    // console.log('Patient profile:', patient?.toJSON ? patient.toJSON() : patient);
     res.json(patient);
   } catch (error) {
     res.status(404).json({ message: error.message });
   }
 };
+
 
 const updateProfile = async (req, res) => {
   const errors = validationResult(req);

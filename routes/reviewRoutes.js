@@ -3,30 +3,63 @@ const router = express.Router();
 const reviewController = require('../controllers/reviewController');
 const { authMiddleware } = require('../middlewares/authMiddleware');
 const validate = require('../middlewares/validationMiddleware');
-const { check } = require('express-validator');
+const { check, param } = require('express-validator');
 
-router.use(authMiddleware);
+// Middleware для отключения кеширования и 304
+function noCache(req, res, next) {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.set('Surrogate-Control', 'no-store');
+  next();
+}
 
-router.post('/', 
+// Публичный маршрут: просмотр отзывов конкретного врача
+router.get(
+  '/doctor/:doctorId',
+  noCache,  // отключаем кеширование
   validate([
-    check('doctorId').isInt().withMessage('Doctor ID must be an integer'),
-    check('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
-    check('comment').isLength({ min: 10 }).withMessage('Comment must be at least 10 characters long')
+    param('doctorId').isInt().withMessage('doctorId должен быть целым числом')
+  ]),
+  reviewController.getDoctorReviews
+);
+
+// Защищённый маршрут: просмотр своих отзывов
+router.get('/my-reviews', authMiddleware, noCache, reviewController.getPatientReviews);
+
+// Защищённый маршрут: создание отзыва
+router.post(
+  '/doctor/:doctorId',
+  authMiddleware,
+  validate([
+    param('doctorId').isInt().withMessage('doctorId должен быть целым числом'),
+    check('rating').isInt({ min: 1, max: 5 }).withMessage('Рейтинг должен быть от 1 до 5'),
+    check('comment').isLength({ min: 10 }).withMessage('Комментарий должен быть не короче 10 символов')
   ]),
   reviewController.createReview
 );
 
-router.get('/doctor/:doctorId', reviewController.getDoctorReviews);
-router.get('/my-reviews', reviewController.getPatientReviews);
 
-router.put('/:id', 
+// Защищённый маршрут: обновление отзыва
+router.put(
+  '/:id',
+  authMiddleware,
   validate([
-    check('rating').optional().isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
-    check('comment').optional().isLength({ min: 10 }).withMessage('Comment must be at least 10 characters long')
+    param('id').isInt().withMessage('id должен быть целым числом'),
+    check('rating').optional().isInt({ min: 1, max: 5 }).withMessage('Рейтинг должен быть от 1 до 5'),
+    check('comment').optional().isLength({ min: 10 }).withMessage('Комментарий должен быть не короче 10 символов')
   ]),
   reviewController.updateReview
 );
 
-router.delete('/:id', reviewController.deleteReview);
+// Защищённый маршрут: удаление отзыва
+router.delete(
+  '/:id',
+  authMiddleware,
+  validate([
+    param('id').isInt().withMessage('id должен быть целым числом')
+  ]),
+  reviewController.deleteReview
+);
 
 module.exports = router;

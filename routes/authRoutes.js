@@ -3,6 +3,8 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const validate = require('../middlewares/validationMiddleware');
 const { check } = require('express-validator');
+const { authMiddleware } = require('../middlewares/authMiddleware');
+
 
 router.post('/register', 
   validate([
@@ -24,8 +26,14 @@ router.post('/login',
   authController.login
 );
 
-router.get('/profile', authController.getProfile);
-router.put('/profile', 
+router.get('/profile', authMiddleware, (req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.set('Surrogate-Control', 'no-store');
+  next();
+}, authController.getProfile);
+router.put('/profile', authMiddleware, 
   validate([
     check('firstName').optional().notEmpty().withMessage('First name cannot be empty'),
     check('lastName').optional().notEmpty().withMessage('Last name cannot be empty'),

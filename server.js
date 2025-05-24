@@ -22,6 +22,8 @@ const adminSpecialtyRoutes = require('./routes/admin/specialtyRoutes');
 const adminUserRoutes = require('./routes/admin/userRoutes');
 
 const app = express();
+app.disable('etag');
+
 
 // Middleware
 app.use(cors());
