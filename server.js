@@ -12,7 +12,7 @@ const userRoutes = require('./routes/userRoutes');
 const doctorRoutes = require('./routes/doctorRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
-// const specialtyRoutes = require('./routes/specialtyRoutes');
+const specialtiesRouter = require('./routes/specialties');
 
 // Импорт админских роутов
 const adminDoctorRoutes = require('./routes/admin/doctorRoutes');
@@ -41,7 +41,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/reviews', reviewRoutes);
-// app.use('/api/specialties', specialtyRoutes);
+app.use('/api/specialties', specialtiesRouter);
 
 // Админские роуты
 app.use('/api/admin/doctors', adminDoctorRoutes);
@@ -49,6 +49,31 @@ app.use('/api/admin/appointments', adminAppointmentRoutes);
 app.use('/api/admin/reviews', adminReviewRoutes);
 app.use('/api/admin/specialties', adminSpecialtyRoutes);
 app.use('/api/admin/users', adminUserRoutes);
+
+// Маршруты аутентификации
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    console.log('Login attempt:', { email, password }); // для отладки
+    // ваша логика авторизации
+    res.json({ token: 'your-token' });
+  } catch (error) {
+    console.error('Login error:', error); // для отладки
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const userData = req.body;
+    console.log('Registration attempt:', userData); // для отладки
+    // ваша логика регистрации
+    res.json({ message: 'User registered successfully' });
+  } catch (error) {
+    console.error('Registration error:', error); // для отладки
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // Обработка ошибок
 app.use((req, res, next) => {

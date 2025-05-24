@@ -7,40 +7,48 @@ module.exports = (sequelize) => {
       primaryKey: true,
       autoIncrement: true
     },
-    date: {
-      type: DataTypes.DATEONLY,
+    patientId: {
+      type: DataTypes.INTEGER,
       allowNull: false,
-      validate: {
-        isDate: true,
-        notEmpty: true
+      references: {
+        model: 'patients',
+        key: 'id'
+      }
+    },
+    scheduleId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'schedules',
+        key: 'id'
       }
     },
     time: {
       type: DataTypes.TIME,
       allowNull: false,
       validate: {
-        notEmpty: true
+        isTime(value) {
+          if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(value)) {
+            throw new Error('Invalid time format (HH:MM)');
+          }
+        }
       }
     },
     status: {
       type: DataTypes.ENUM('scheduled', 'completed', 'canceled'),
-      defaultValue: 'scheduled',
-      validate: {
-        isIn: [['scheduled', 'completed', 'canceled']]
-      }
-    },
-    notes: {
-      type: DataTypes.TEXT,
-      allowNull: true
+      defaultValue: 'scheduled'
     }
   }, {
+    tableName: 'appointments',
+    underscored: true,
     timestamps: true,
-    underscored: true
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
   });
 
   Appointment.associate = (models) => {
-    Appointment.belongsTo(models.Patient, { foreignKey: 'patient_id' });
-    Appointment.belongsTo(models.Doctor, { foreignKey: 'doctor_id' });
+    Appointment.belongsTo(models.Patient, { foreignKey: 'patientId' });
+    Appointment.belongsTo(models.Schedule, { foreignKey: 'scheduleId' });
   };
 
   return Appointment;

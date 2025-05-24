@@ -10,57 +10,38 @@ module.exports = (sequelize) => {
     },
     firstName: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true
-      }
+      allowNull: false
     },
     lastName: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true
-      }
+      allowNull: false
     },
     email: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
       validate: {
-        isEmail: true,
-        notEmpty: true
+        isEmail: true
       }
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-        len: [6, 100]
-      }
+      allowNull: false
     },
     phone: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-        is: /^\+?[\d\s-]{10,15}$/
-      }
+      allowNull: false
     },
     birthDate: {
       type: DataTypes.DATEONLY,
-      allowNull: false,
-      validate: {
-        isDate: true,
-        notEmpty: true
-      }
+      allowNull: false
     },
     role: {
-      type: DataTypes.ENUM('patient', 'admin'),
+      type: DataTypes.STRING,
       defaultValue: 'patient'
     }
   }, {
-    timestamps: true,
+    tableName: 'patients',
     underscored: true,
     hooks: {
       beforeCreate: async (patient) => {
@@ -81,8 +62,8 @@ module.exports = (sequelize) => {
   };
 
   Patient.associate = (models) => {
-    Patient.hasMany(models.Appointment, { foreignKey: 'patient_id' });
-    Patient.hasMany(models.Review, { foreignKey: 'patient_id' });
+    Patient.hasMany(models.Appointment, { foreignKey: 'patientId' });
+    Patient.hasMany(models.Review, { foreignKey: 'patientId' });
   };
 
   return Patient;

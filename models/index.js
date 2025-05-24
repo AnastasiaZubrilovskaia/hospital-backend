@@ -1,7 +1,5 @@
+const sequelize = require('../config/database');
 const { Sequelize } = require('sequelize');
-const config = require('../config/database');
-
-const sequelize = new Sequelize(config);
 
 const db = {};
 
@@ -10,6 +8,7 @@ db.Doctor = require('./Doctor')(sequelize);
 db.Specialty = require('./Specialty')(sequelize);
 db.Appointment = require('./Appointment')(sequelize);
 db.Review = require('./Review')(sequelize);
+db.Schedule = require('./Schedule')(sequelize)
 
 // Установка связей
 Object.keys(db).forEach(modelName => {
@@ -20,5 +19,14 @@ Object.keys(db).forEach(modelName => {
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
+
+// Синхронизация моделей с базой данных
+sequelize.sync()
+  .then(() => {
+    console.log('Database synchronized successfully');
+  })
+  .catch(err => {
+    console.error('Error synchronizing database:', err);
+  });
 
 module.exports = db;

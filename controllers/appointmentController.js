@@ -1,131 +1,144 @@
-const { Appointment, Doctor, Patient } = require('../models');
+const { Appointment, Schedule, sequelize } = require('../models');
+const { Op } = require('sequelize');
 
-const createAppointment = async (req, res) => {
+async function getAvailableSlots(req, res) {
   try {
-    const { date, time, doctorId, notes } = req.body;
-    const patientId = req.patient.id;
-
-    // Проверка доступности времени у врача
-    const existingAppointment = await Appointment.findOne({
-      where: {
-        date,
-        time,
-        doctorId,
-        status: 'scheduled'
-      }
-    });
-
-    if (existingAppointment) {
-      return res.status(400).json({ message: 'This time slot is already booked' });
-    }
-
-    const appointment = await Appointment.create({
-      date,
-      time,
-      notes,
-      status: 'scheduled',
-      PatientId: patientId,
-      DoctorId: doctorId
-    });
-
-    res.status(201).json(appointment);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
-
-const getPatientAppointments = async (req, res) => {
-  try {
-    const appointments = await Appointment.findAll({
-      where: { PatientId: req.patient.id },
-      include: [
-        { model: Doctor, include: ['Specialty'] }
-      ],
-      order: [['date', 'DESC'], ['time', 'DESC']]
-    });
-    res.json(appointments);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-const getAppointmentDetails = async (req, res) => {
-  try {
-    const appointment = await Appointment.findOne({
-      where: {
-        id: req.params.id,
-        PatientId: req.patient.id
-      },
-      include: [
-        { model: Doctor, include: ['Specialty'] }
-      ]
-    });
-
-    if (!appointment) {
-      return res.status(404).json({ message: 'Appointment not found' });
-    }
-
-    res.json(appointment);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-const cancelAppointment = async (req, res) => {
-  try {
-    const appointment = await Appointment.findOne({
-      where: {
-        id: req.params.id,
-        PatientId: req.patient.id,
-        status: 'scheduled'
-      }
-    });
-
-    if (!appointment) {
-      return res.status(404).json({ message: 'Appointment not found or already canceled/completed' });
-    }
-
-    await appointment.update({ status: 'canceled' });
-    res.json({ message: 'Appointment canceled successfully' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-const getAvailableSlots = async (req, res) => {
-  try {
-    const { doctorId, date } = req.params;
+    const { doctorId, dayOfWeek } = req.params;
     
-    // Здесь должна быть логика получения доступных слотов
-    // Это пример - в реальном приложении нужно учитывать график работы врача
-    const bookedSlots = await Appointment.findAll({
-      where: {
+    // 1. Находим активное расписание врача на указанный день
+    const schedule = await Schedule.findOne({
+      where: { 
         doctorId,
-        date,
+        dayOfWeek,
+        isActive: true 
+      }
+    });
+
+    if (!schedule) {
+      return res.json([]);
+    }
+
+    // 2. Получаем все записи на этот день
+    const appointments = await Appointment.findAll({
+      where: {
+        scheduleId: schedule.id,
         status: 'scheduled'
       },
       attributes: ['time']
     });
 
-    const bookedTimes = bookedSlots.map(slot => slot.time);
-    
-    // Генерация стандартных временных слотов (каждый час с 9:00 до 18:00)
+    // 3. Генерируем все возможные слоты
     const allSlots = [];
-    for (let hour = 9; hour < 18; hour++) {
-      allSlots.push(`${hour}:00:00`);
+    let currentTime = new Date(`1970-01-01T${schedule.startTime}`);
+    const endTime = new Date(`1970-01-01T${schedule.endTime}`);
+    
+    while (currentTime < endTime) {
+      const timeString = currentTime.toTimeString().substring(0, 5);
+      allSlots.push(timeString);
+      currentTime.setMinutes(currentTime.getMinutes() + 30); // 30-минутные слоты
     }
 
-    const availableSlots = allSlots.filter(time => !bookedTimes.includes(time));
+    // 4. Фильтруем занятые слоты
+    const bookedSlots = appointments.map(a => a.time);
+    const availableSlots = allSlots.filter(slot => !bookedSlots.includes(slot));
+
     res.json(availableSlots);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: error.message });
   }
-};
+}
+
+async function createAppointment(req, res) {
+  try {
+    const { scheduleId, time } = req.body;
+    const patientId = req.user.id;
+
+    const appointment = await Appointment.create({
+      scheduleId,
+      time,
+      patientId,
+      status: 'scheduled'
+    });
+
+    res.status(201).json(appointment);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+async function getPatientAppointments(req, res) {
+  try {
+    const patientId = req.user.id;
+    const appointments = await Appointment.findAll({
+      where: { patientId },
+      include: [
+        {
+          model: Schedule,
+          include: ['doctor']
+        }
+      ]
+    });
+    res.json(appointments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+async function getAppointmentDetails(req, res) {
+  try {
+    const { id } = req.params;
+    const patientId = req.user.id;
+
+    const appointment = await Appointment.findOne({
+      where: { id, patientId },
+      include: [
+        {
+          model: Schedule,
+          include: ['doctor']
+        }
+      ]
+    });
+
+    if (!appointment) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    res.json(appointment);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+async function cancelAppointment(req, res) {
+  try {
+    const { id } = req.params;
+    const patientId = req.user.id;
+
+    const appointment = await Appointment.findOne({
+      where: { id, patientId }
+    });
+
+    if (!appointment) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    if (appointment.status === 'canceled') {
+      return res.status(400).json({ error: 'Appointment is already canceled' });
+    }
+
+    appointment.status = 'canceled';
+    await appointment.save();
+
+    res.json(appointment);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
 
 module.exports = {
+  getAvailableSlots,
   createAppointment,
   getPatientAppointments,
   getAppointmentDetails,
-  cancelAppointment,
-  getAvailableSlots
+  cancelAppointment
 };

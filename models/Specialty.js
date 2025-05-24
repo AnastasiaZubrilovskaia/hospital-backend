@@ -10,27 +10,19 @@ module.exports = (sequelize) => {
     name: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
-      validate: {
-        notEmpty: true,
-        len: [2, 50]
-      }
+      unique: true
     },
     description: {
       type: DataTypes.TEXT,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-        len: [10, 1000]
-      }
+      allowNull: false
     }
   }, {
-    timestamps: true,
+    tableName: 'specialties',
     underscored: true
   });
 
   Specialty.associate = (models) => {
-    Specialty.hasMany(models.Doctor, { foreignKey: 'specialty_id' });
+    Specialty.hasMany(models.Doctor, { foreignKey: 'specialtyId' });
   };
 
   return Specialty;

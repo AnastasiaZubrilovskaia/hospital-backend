@@ -12,33 +12,42 @@ module.exports = (sequelize) => {
       allowNull: false,
       validate: {
         min: 1,
-        max: 5,
-        isInt: true
+        max: 5
       }
     },
     comment: {
       type: DataTypes.TEXT,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-        len: [10, 1000]
-      }
+      allowNull: false
     },
     status: {
-      type: DataTypes.ENUM('pending', 'approved', 'rejected'),
-      defaultValue: 'pending',
-      validate: {
-        isIn: [['pending', 'approved', 'rejected']]
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'pending'
+    },
+    patientId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'patients',
+        key: 'id'
+      }
+    },
+    doctorId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'doctors',
+        key: 'id'
       }
     }
   }, {
-    timestamps: true,
+    tableName: 'reviews',
     underscored: true
   });
 
   Review.associate = (models) => {
-    Review.belongsTo(models.Patient, { foreignKey: 'patient_id' });
-    Review.belongsTo(models.Doctor, { foreignKey: 'doctor_id' });
+    Review.belongsTo(models.Patient, { foreignKey: 'patientId' });
+    Review.belongsTo(models.Doctor, { foreignKey: 'doctorId' });
   };
 
   return Review;
