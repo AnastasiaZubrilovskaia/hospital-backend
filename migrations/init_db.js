@@ -84,8 +84,8 @@ const createTestData = async () => {
     { 
       firstName: 'Алексей', 
       lastName: 'Иванов', 
-      email: 'alexey.ivanov@example.com', 
-      password: 'password123', 
+      email: 'alexey@gmail.com', 
+      password: '$2b$10$byoEIcxRU6dEuQaRRK.9MeOoIfQiV0xmy88nGIA3fo4XhNjyCe006', 
       phone: '+79105554433', 
       birthDate: '1985-05-15',
       role: 'patient'
@@ -93,8 +93,8 @@ const createTestData = async () => {
     { 
       firstName: 'Елена', 
       lastName: 'Смирнова', 
-      email: 'elena.smirnova@example.com', 
-      password: 'password123', 
+      email: 'elena@gmail.com', 
+      password: '$2b$10$byoEIcxRU6dEuQaRRK.9MeOoIfQiV0xmy88nGIA3fo4XhNjyCe006', 
       phone: '+79108887766', 
       birthDate: '1990-08-20',
       role: 'admin'

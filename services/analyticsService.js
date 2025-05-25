@@ -1,4 +1,4 @@
-const { Appointment, Doctor, Patient, Review, Specialty } = require('../models');
+const { Appointment, Doctor, Patient, Review, Specialty, sequelize, Sequelize } = require('../models');
 const moment = require('moment');
 
 class AnalyticsService {
@@ -18,7 +18,7 @@ class AnalyticsService {
         Specialty.count(),
         Appointment.count({
           where: {
-            date: { [Sequelize.Op.gte]: new Date() },
+            appointment_date: { [Sequelize.Op.gte]: new Date() },
             status: 'scheduled'
           }
         }),
@@ -47,7 +47,7 @@ class AnalyticsService {
     try {
       let groupBy;
       let dateFormat;
-      
+
       switch (timePeriod) {
         case 'day':
           groupBy = 'day';
@@ -55,7 +55,7 @@ class AnalyticsService {
           break;
         case 'week':
           groupBy = 'week';
-          dateFormat = '%Y-%u';
+          dateFormat = '%Y-%W'; // Используем %W для номера недели в SQLite
           break;
         case 'year':
           groupBy = 'year';
@@ -68,13 +68,13 @@ class AnalyticsService {
 
       const results = await Appointment.findAll({
         attributes: [
-          [sequelize.fn('strftime', dateFormat, sequelize.col('date')), groupBy],
+          [sequelize.fn('strftime', dateFormat, sequelize.col('appointment_date')), groupBy],
           [sequelize.fn('count', '*'), 'count'],
           [sequelize.fn('sum', sequelize.literal("CASE WHEN status = 'completed' THEN 1 ELSE 0 END")), 'completed'],
-          [sequelize.fn('sum', sequelize.literal("CASE WHEN status = 'canceled' THEN 1 ELSE 0 END")), 'canceled']
+          [sequelize.fn('sum', sequelize.literal("CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END")), 'cancelled'] 
         ],
-        group: [sequelize.fn('strftime', dateFormat, sequelize.col('date'))],
-        order: [[sequelize.fn('strftime', dateFormat, sequelize.col('date')), 'ASC']],
+        group: [sequelize.fn('strftime', dateFormat, sequelize.col('appointment_date'))],
+        order: [[sequelize.fn('strftime', dateFormat, sequelize.col('appointment_date')), 'ASC']],
         raw: true
       });
 
@@ -95,9 +95,9 @@ class AnalyticsService {
           'id',
           'firstName',
           'lastName',
-          [sequelize.literal('(SELECT COUNT(*) FROM Appointments WHERE Appointments.DoctorId = Doctor.id)'), 'totalAppointments'],
-          [sequelize.literal('(SELECT AVG(rating) FROM Reviews WHERE Reviews.DoctorId = Doctor.id AND status = "approved")'), 'avgRating'],
-          [sequelize.literal('(SELECT COUNT(*) FROM Reviews WHERE Reviews.DoctorId = Doctor.id AND status = "approved")'), 'reviewsCount']
+          [sequelize.literal('(SELECT COUNT(*) FROM appointments WHERE appointments.doctor_id = Doctor.id)'), 'totalAppointments'],
+          [sequelize.literal('(SELECT AVG(rating) FROM reviews WHERE reviews.doctor_id = Doctor.id AND status = "approved")'), 'avgRating'],
+          [sequelize.literal('(SELECT COUNT(*) FROM reviews WHERE reviews.doctor_id = Doctor.id AND status = "approved")'), 'reviewsCount']
         ],
         include: [{
           model: Specialty,
@@ -120,8 +120,8 @@ class AnalyticsService {
         attributes: [
           'id',
           'name',
-          [sequelize.literal('(SELECT COUNT(*) FROM Doctors WHERE Doctors.SpecialtyId = Specialty.id)'), 'doctorsCount'],
-          [sequelize.literal('(SELECT COUNT(*) FROM Appointments WHERE Appointments.DoctorId IN (SELECT id FROM Doctors WHERE Doctors.SpecialtyId = Specialty.id))'), 'appointmentsCount']
+          [sequelize.literal('(SELECT COUNT(*) FROM doctors WHERE doctors.specialty_id = Specialty.id)'), 'doctorsCount'],
+          [sequelize.literal('(SELECT COUNT(*) FROM appointments WHERE appointments.doctor_id IN (SELECT id FROM doctors WHERE doctors.specialty_id = Specialty.id))'), 'appointmentsCount']
         ],
         order: [[sequelize.literal('appointmentsCount'), 'DESC']],
         limit: 5

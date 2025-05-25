@@ -8,6 +8,8 @@ const getAllDoctors = async (req, res) => {
         attributes: ['name']
       }]
     });
+    console.log(JSON.stringify(doctors, null, 2));
+    console.log(doctors.map(d => ({ id: d.id, spec: d.Specialty })));
     res.json(doctors);
   } catch (error) {
     res.status(500).json({ message: error.message });

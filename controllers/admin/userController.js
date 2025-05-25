@@ -69,9 +69,40 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const createAdmin = async (req, res) => {
+  try {
+    const { firstName, lastName, email, password, phone, birthDate } = req.body;
+
+    // Проверка на существование email
+    const existingUser = await Patient.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email already in use' });
+    }
+
+    const admin = await Patient.create({
+      firstName,
+      lastName,
+      email,
+      password,
+      phone,
+      birthDate,
+      role: 'admin'
+    });
+
+    // Удалим пароль из ответа
+    const { password: _, ...adminWithoutPassword } = admin.get({ plain: true });
+
+    res.status(201).json(adminWithoutPassword);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+
 module.exports = {
   getAllUsers,
   getUserById,
   updateUser,
-  deleteUser
+  deleteUser,
+  createAdmin
 };

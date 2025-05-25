@@ -72,8 +72,7 @@ const getDoctorReviews = async (req, res) => {
     const reviews = await Review.findAll({
       where: {
         doctorId,
-        // status: 'approved'
-        status: ['approved', 'pending']
+        status: 'approved'
       },
       include: [
         { model: Patient, attributes: ['firstName', 'lastName'] }

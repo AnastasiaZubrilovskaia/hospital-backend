@@ -37,8 +37,43 @@ const deleteDoctor = async (req, res) => {
   }
 };
 
+const getAllDoctors = async (req, res) => {
+  try {
+    const doctors = await Doctor.findAll({
+      include: [{
+        model: Specialty,
+        attributes: ['name']
+      }]
+    });
+    res.json(doctors);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getDoctorById = async (req, res) => {
+  try {
+    const doctor = await Doctor.findByPk(req.params.id, {
+      include: [{
+        model: Specialty,
+        attributes: ['name', 'description']
+      }]
+    });
+
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+
+    res.json(doctor);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createDoctor,
   updateDoctor,
-  deleteDoctor
+  deleteDoctor,
+  getAllDoctors,
+  getDoctorById
 };

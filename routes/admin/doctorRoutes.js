@@ -15,7 +15,7 @@ router.post('/',
     check('phone').notEmpty().withMessage('Phone number is required'),
     check('experience').isInt({ min: 0 }).withMessage('Experience must be a positive number'),
     check('education').notEmpty().withMessage('Education is required'),
-    check('SpecialtyId').isInt().withMessage('Specialty ID must be a number')
+    check('specialtyId').isInt().withMessage('Specialty ID must be a number')  // <-- здесь
   ]),
   doctorController.createDoctor
 );
@@ -28,11 +28,13 @@ router.put('/:id',
     check('phone').optional().notEmpty().withMessage('Phone number cannot be empty'),
     check('experience').optional().isInt({ min: 0 }).withMessage('Experience must be a positive number'),
     check('education').optional().notEmpty().withMessage('Education cannot be empty'),
-    check('SpecialtyId').optional().isInt().withMessage('Specialty ID must be a number')
+    check('specialtyId').optional().isInt().withMessage('Specialty ID must be a number') // <-- и здесь
   ]),
   doctorController.updateDoctor
 );
 
 router.delete('/:id', doctorController.deleteDoctor);
+router.get('/', doctorController.getAllDoctors);
+
 
 module.exports = router;

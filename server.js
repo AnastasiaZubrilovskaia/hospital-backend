@@ -20,6 +20,7 @@ const adminAppointmentRoutes = require('./routes/admin/appointmentRoutes');
 const adminReviewRoutes = require('./routes/admin/reviewRoutes');
 const adminSpecialtyRoutes = require('./routes/admin/specialtyRoutes');
 const adminUserRoutes = require('./routes/admin/userRoutes');
+const adminStatisticsRoutes = require('./routes/admin/statistics');
 
 const app = express();
 app.disable('etag');
@@ -52,6 +53,7 @@ app.use('/api/admin/appointments', adminAppointmentRoutes);
 app.use('/api/admin/reviews', adminReviewRoutes);
 app.use('/api/admin/specialties', adminSpecialtyRoutes);
 app.use('/api/admin/users', adminUserRoutes);
+app.use('/api/admin/statistics', adminStatisticsRoutes);
 
 
 // Маршруты аутентификации

@@ -1,5 +1,6 @@
-const { Appointment, Patient, Doctor } = require('../../models');
+const { Appointment, Patient, Doctor, sequelize } = require('../../models');
 
+// Получить все записи
 const getAllAppointments = async (req, res) => {
   try {
     const appointments = await Appointment.findAll({
@@ -7,7 +8,7 @@ const getAllAppointments = async (req, res) => {
         { model: Patient, attributes: ['id', 'firstName', 'lastName', 'email'] },
         { model: Doctor, include: ['Specialty'] }
       ],
-      order: [['date', 'ASC'], ['time', 'ASC']]
+      order: [['appointment_date', 'ASC']]
     });
     res.json(appointments);
   } catch (error) {
@@ -15,6 +16,7 @@ const getAllAppointments = async (req, res) => {
   }
 };
 
+// Получить запись по ID
 const getAppointmentById = async (req, res) => {
   try {
     const appointment = await Appointment.findByPk(req.params.id, {
@@ -34,6 +36,7 @@ const getAppointmentById = async (req, res) => {
   }
 };
 
+// Обновить запись
 const updateAppointment = async (req, res) => {
   try {
     const appointment = await Appointment.findByPk(req.params.id);
@@ -48,6 +51,7 @@ const updateAppointment = async (req, res) => {
   }
 };
 
+// Удалить запись
 const deleteAppointment = async (req, res) => {
   try {
     const appointment = await Appointment.findByPk(req.params.id);
@@ -62,15 +66,19 @@ const deleteAppointment = async (req, res) => {
   }
 };
 
+// Получить записи по дате
 const getAppointmentsByDate = async (req, res) => {
   try {
     const appointments = await Appointment.findAll({
-      where: { date: req.params.date },
+      where: sequelize.where(
+        sequelize.fn('DATE', sequelize.col('appointment_date')),
+        req.params.date
+      ),
       include: [
         { model: Patient, attributes: ['id', 'firstName', 'lastName'] },
         { model: Doctor, include: ['Specialty'] }
       ],
-      order: [['time', 'ASC']]
+      order: [['appointment_date', 'ASC']]
     });
     res.json(appointments);
   } catch (error) {

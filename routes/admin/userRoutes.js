@@ -22,6 +22,20 @@ router.put('/:id',
   userController.updateUser
 );
 
+router.post(
+  '/',
+  validate([
+    check('firstName').notEmpty().withMessage('First name is required'),
+    check('lastName').notEmpty().withMessage('Last name is required'),
+    check('email').isEmail().withMessage('Valid email is required'),
+    check('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    check('phone').notEmpty().withMessage('Phone number is required'),
+    check('birthDate').isDate().withMessage('Valid birth date is required'),
+  ]),
+  userController.createAdmin
+);
+
+
 router.delete('/:id', userController.deleteUser);
 
 module.exports = router;
