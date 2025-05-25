@@ -2,11 +2,15 @@ const { validationResult } = require('express-validator');
 
 module.exports = (validations) => {
   return async (req, res, next) => {
+    console.log('Running validation middleware'); // <--- это
     await Promise.all(validations.map(validation => validation.run(req)));
+
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ message: 'Ошибка валидации', errors: errors.array() });
+    if (errors.isEmpty()) {
+      return next();
     }
-    next();
+
+    console.log('Validation errors:', errors.array());
+    return res.status(400).json({ errors: errors.array() });
   };
 };

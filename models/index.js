@@ -8,7 +8,6 @@ db.Doctor = require('./Doctor')(sequelize);
 db.Specialty = require('./Specialty')(sequelize);
 db.Appointment = require('./Appointment')(sequelize);
 db.Review = require('./Review')(sequelize);
-db.Schedule = require('./Schedule')(sequelize)
 
 // Установка связей
 Object.keys(db).forEach(modelName => {

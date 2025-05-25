@@ -15,28 +15,22 @@ module.exports = (sequelize) => {
         key: 'id'
       }
     },
-    scheduleId: {
+    doctorId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'schedules',
+        model: 'doctors',
         key: 'id'
       }
     },
-    time: {
-      type: DataTypes.TIME,
-      allowNull: false,
-      validate: {
-        isTime(value) {
-          if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(value)) {
-            throw new Error('Invalid time format (HH:MM)');
-          }
-        }
-      }
+    appointment_date: {
+      type: DataTypes.DATE,
+      allowNull: false
     },
     status: {
-      type: DataTypes.ENUM('scheduled', 'completed', 'canceled'),
-      defaultValue: 'scheduled'
+      type: DataTypes.ENUM('scheduled', 'completed', 'cancelled'), 
+      defaultValue: 'scheduled',
+      allowNull: false
     }
   }, {
     tableName: 'appointments',
@@ -48,7 +42,7 @@ module.exports = (sequelize) => {
 
   Appointment.associate = (models) => {
     Appointment.belongsTo(models.Patient, { foreignKey: 'patientId' });
-    Appointment.belongsTo(models.Schedule, { foreignKey: 'scheduleId' });
+    Appointment.belongsTo(models.Doctor, { foreignKey: 'doctorId' });
   };
 
   return Appointment;

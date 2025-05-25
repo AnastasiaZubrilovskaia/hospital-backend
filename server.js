@@ -32,6 +32,7 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
 // Подключение к базе данных
 sequelize.authenticate()
   .then(() => console.log('Database connected'))
@@ -51,6 +52,7 @@ app.use('/api/admin/appointments', adminAppointmentRoutes);
 app.use('/api/admin/reviews', adminReviewRoutes);
 app.use('/api/admin/specialties', adminSpecialtyRoutes);
 app.use('/api/admin/users', adminUserRoutes);
+
 
 // Маршруты аутентификации
 app.post('/api/auth/login', async (req, res) => {

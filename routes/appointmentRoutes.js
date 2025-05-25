@@ -7,24 +7,28 @@ const { check } = require('express-validator');
 
 router.use(authMiddleware);
 
-router.post('/', 
+// Получить доступные слоты по доктору и дате
+router.get('/available/:doctorId/:date', appointmentController.getAvailableSlots);
+
+// Создать новую запись
+router.post(
+  '/',
   validate([
-    check('scheduleId').isInt(),
-    check('time').matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
+    check('doctorId').isInt().withMessage('doctorId должен быть числом'),
+    check('appointment_date')
+      .isISO8601()
+      .withMessage('Некорректный формат даты и времени, ожидается ISO8601'),
   ]),
   appointmentController.createAppointment
 );
 
+// Получить все записи пациента
 router.get('/', appointmentController.getPatientAppointments);
+
+// Получить конкретную запись
 router.get('/:id', appointmentController.getAppointmentDetails);
-router.get(
-  '/slots/:doctorId/:date',
-  validate([
-    check('doctorId').isInt(),
-    check('date').isDate()
-  ]),
-  appointmentController.getAvailableSlots
-);
-router.put('/:id/cancel', appointmentController.cancelAppointment);
+
+// Отменить запись
+router.delete('/:id', appointmentController.cancelAppointment);
 
 module.exports = router;

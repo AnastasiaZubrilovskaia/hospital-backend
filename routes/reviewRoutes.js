@@ -31,11 +31,19 @@ router.get('/my-reviews', authMiddleware, noCache, reviewController.getPatientRe
 router.post(
   '/doctor/:doctorId',
   authMiddleware,
+  (req, res, next) => {
+    console.log('Incoming POST /doctor/:doctorId body:', req.body);
+    next();
+  },
   validate([
     param('doctorId').isInt().withMessage('doctorId должен быть целым числом'),
-    check('rating').isInt({ min: 1, max: 5 }).withMessage('Рейтинг должен быть от 1 до 5'),
+    check('rating')
+      .toInt()
+      .isInt({ min: 1, max: 5 })
+      .withMessage('Рейтинг должен быть от 1 до 5'),
     check('comment').isLength({ min: 10 }).withMessage('Комментарий должен быть не короче 10 символов')
   ]),
+  
   reviewController.createReview
 );
 

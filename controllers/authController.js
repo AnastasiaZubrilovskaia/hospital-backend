@@ -9,7 +9,17 @@ const register = async (req, res) => {
 
   try {
     const patient = await authService.registerPatient(req.body);
-    res.status(201).json(patient);
+    const { token } = await authService.loginPatient(patient.email, req.body.password);
+    res.status(201).json({
+      patient: {
+        id: patient.id,
+        firstName: patient.firstName,
+        lastName: patient.lastName,
+        email: patient.email,
+        role: patient.role
+      },
+      token
+    });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

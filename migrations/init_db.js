@@ -1,34 +1,26 @@
 const sequelize = require('../config/database');
 const { Sequelize } = require('sequelize');
 
-// Импорт моделей
 const Patient = require('../models/Patient');
 const Doctor = require('../models/Doctor');
 const Specialty = require('../models/Specialty');
 const Appointment = require('../models/Appointment');
 const Review = require('../models/Review');
-const Schedule = require('../models/Schedule');
 
-// Инициализация моделей
 const PatientModel = Patient(sequelize);
 const DoctorModel = Doctor(sequelize);
 const SpecialtyModel = Specialty(sequelize);
 const AppointmentModel = Appointment(sequelize);
 const ReviewModel = Review(sequelize);
-const ScheduleModel = Schedule(sequelize);
 
-// Определение связей между моделями
 DoctorModel.belongsTo(SpecialtyModel, { foreignKey: 'specialtyId' });
 SpecialtyModel.hasMany(DoctorModel, { foreignKey: 'specialtyId' });
 
 AppointmentModel.belongsTo(PatientModel, { foreignKey: 'patientId' });
 PatientModel.hasMany(AppointmentModel, { foreignKey: 'patientId' });
 
-AppointmentModel.belongsTo(ScheduleModel, { foreignKey: 'scheduleId' });
-ScheduleModel.hasMany(AppointmentModel, { foreignKey: 'scheduleId' });
-
-ScheduleModel.belongsTo(DoctorModel, { foreignKey: 'doctorId' });
-DoctorModel.hasMany(ScheduleModel, { foreignKey: 'doctorId' });
+AppointmentModel.belongsTo(DoctorModel, { foreignKey: 'doctorId' });
+DoctorModel.hasMany(AppointmentModel, { foreignKey: 'doctorId' });
 
 ReviewModel.belongsTo(PatientModel, { foreignKey: 'patientId' });
 PatientModel.hasMany(ReviewModel, { foreignKey: 'patientId' });
@@ -40,11 +32,10 @@ const initDb = async () => {
   try {
     await sequelize.sync({ force: true });
     console.log('Database synchronized');
-    
-    // Создание тестовых данных
+
     await createTestData();
     console.log('Test data created');
-    
+
     process.exit(0);
   } catch (error) {
     console.error('Error initializing database:', error);
@@ -53,7 +44,6 @@ const initDb = async () => {
 };
 
 const createTestData = async () => {
-  // Создание специальностей
   const specialties = await SpecialtyModel.bulkCreate([
     { 
       name: 'Терапевт', 
@@ -69,7 +59,6 @@ const createTestData = async () => {
     }
   ]);
 
-  // Создание врачей
   const doctors = await DoctorModel.bulkCreate([
     { 
       firstName: 'Иван', 
@@ -78,8 +67,7 @@ const createTestData = async () => {
       phone: '+79101234567', 
       experience: 10, 
       education: 'МГМУ им. Сеченова, лечебный факультет, 2013', 
-      specialtyId: specialties[0].id,
-      photo: null
+      specialtyId: specialties[0].id
     },
     { 
       firstName: 'Мария', 
@@ -88,12 +76,10 @@ const createTestData = async () => {
       phone: '+79107654321', 
       experience: 15, 
       education: 'РНИМУ им. Пирогова, лечебный факультет, 2008', 
-      specialtyId: specialties[1].id,
-      photo: null
+      specialtyId: specialties[1].id
     }
   ]);
 
-  // Создание пациентов
   const patients = await PatientModel.bulkCreate([
     { 
       firstName: 'Алексей', 
@@ -115,41 +101,22 @@ const createTestData = async () => {
     }
   ]);
 
-  // Создание расписаний
-  const schedules = await ScheduleModel.bulkCreate([
-    {
-      doctorId: doctors[0].id,
-      dayOfWeek: 'monday',
-      startTime: '09:00',
-      endTime: '18:00',
-      isActive: true
-    },
-    {
-      doctorId: doctors[1].id,
-      dayOfWeek: 'tuesday',
-      startTime: '10:00',
-      endTime: '19:00',
-      isActive: true
-    }
-  ]);
-
-  // Создание записей на прием
+  // Создаем дату и время вместе в одном поле appointment_date
   const appointments = await AppointmentModel.bulkCreate([
     { 
-      time: '10:00', 
+      appointment_date: new Date('2025-05-26T10:00:00'), 
       status: 'scheduled', 
       patientId: patients[0].id, 
-      scheduleId: schedules[0].id 
+      doctorId: doctors[0].id 
     },
     { 
-      time: '14:30', 
+      appointment_date: new Date('2025-05-27T14:30:00'), 
       status: 'scheduled', 
       patientId: patients[0].id, 
-      scheduleId: schedules[1].id 
+      doctorId: doctors[1].id 
     }
   ]);
 
-  // Создание отзывов
   const reviews = await ReviewModel.bulkCreate([
     { 
       rating: 5, 

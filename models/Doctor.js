@@ -50,8 +50,8 @@ module.exports = (sequelize) => {
 
   Doctor.associate = (models) => {
     Doctor.belongsTo(models.Specialty, { foreignKey: 'specialtyId' });
-    Doctor.hasMany(models.Schedule, { foreignKey: 'doctorId' });
     Doctor.hasMany(models.Review, { foreignKey: 'doctorId' });
+    Doctor.hasMany(models.Appointment, { foreignKey: 'doctorId' });
   };
 
   return Doctor;
