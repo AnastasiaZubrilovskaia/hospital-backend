@@ -1,42 +1,31 @@
 const { Review, Doctor, Appointment, Patient } = require('../models');
 
-// Создание нового отзыва
+
 const createReview = async (req, res, next) => {
   const doctorId = parseInt(req.params.doctorId, 10);
   const rating = parseInt(req.body.rating, 10);
   const comment = req.body.comment;
   const patientId = req.patient.id;
 
-  console.log('➡️ createReview() запущен');
-  console.log('doctorId:', doctorId, typeof doctorId);
-  console.log('rating:', rating, typeof rating);
-  console.log('comment:', comment);
-  console.log('patientId:', patientId);
-
   if (isNaN(doctorId)) {
-    console.log('❌ Некорректный doctorId');
     return res.status(400).json({ message: 'Некорректный ID врача' });
   }
 
   if (isNaN(rating) || rating < 1 || rating > 5) {
-    console.log('❌ Некорректный рейтинг');
     return res.status(400).json({ message: 'Оценка должна быть числом от 1 до 5' });
   }
 
   if (!comment || comment.trim() === '') {
-    console.log('❌ Комментарий пустой');
     return res.status(400).json({ message: 'Комментарий обязателен' });
   }
 
   if (comment.length < 10) {
-    console.log('❌ Комментарий слишком короткий');
     return res.status(400).json({ message: 'Комментарий должен быть не короче 10 символов' });
   }
 
   try {
     const existingReview = await Review.findOne({ where: { patientId, doctorId } });
     if (existingReview) {
-      console.log('Обновляем существующий отзыв');
       existingReview.rating = rating;
       existingReview.comment = comment;
       existingReview.status = 'pending';
@@ -51,10 +40,8 @@ const createReview = async (req, res, next) => {
       doctorId
     });
 
-    console.log('✅ Отзыв создан:', review);
     return res.status(201).json(review);
   } catch (error) {
-    console.error('💥 Ошибка в createReview:', error);
     return res.status(500).json({ message: 'Ошибка сервера' });
   }
 };

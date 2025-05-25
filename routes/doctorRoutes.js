@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
       if (found) {
         where.specialtyId = found.id;
       } else {
-        return res.json([]); // нет врачей с такой специальностью
+        return res.json([]); 
       }
     }
 

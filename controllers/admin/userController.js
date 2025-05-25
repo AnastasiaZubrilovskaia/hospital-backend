@@ -35,7 +35,6 @@ const updateUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Не позволяем админу менять свой собственный статус
     if (req.patient.id === user.id && req.body.role && req.body.role !== user.role) {
       return res.status(403).json({ message: 'You cannot change your own role' });
     }
@@ -57,7 +56,6 @@ const deleteUser = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Не позволяем админу удалять самого себя
     if (req.patient.id === user.id) {
       return res.status(403).json({ message: 'You cannot delete yourself' });
     }
@@ -73,7 +71,6 @@ const createAdmin = async (req, res) => {
   try {
     const { firstName, lastName, email, password, phone, birthDate } = req.body;
 
-    // Проверка на существование email
     const existingUser = await Patient.findOne({ where: { email } });
     if (existingUser) {
       return res.status(400).json({ message: 'Email already in use' });
@@ -89,7 +86,6 @@ const createAdmin = async (req, res) => {
       role: 'admin'
     });
 
-    // Удалим пароль из ответа
     const { password: _, ...adminWithoutPassword } = admin.get({ plain: true });
 
     res.status(201).json(adminWithoutPassword);

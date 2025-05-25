@@ -60,11 +60,10 @@ app.use('/api/admin/statistics', adminStatisticsRoutes);
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log('Login attempt:', { email, password }); // для отладки
-    // ваша логика авторизации
+    console.log('Login attempt:', { email, password }); 
     res.json({ token: 'your-token' });
   } catch (error) {
-    console.error('Login error:', error); // для отладки
+    console.error('Login error:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -72,11 +71,10 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/auth/register', async (req, res) => {
   try {
     const userData = req.body;
-    console.log('Registration attempt:', userData); // для отладки
-    // ваша логика регистрации
+    console.log('Registration attempt:', userData); 
     res.json({ message: 'User registered successfully' });
   } catch (error) {
-    console.error('Registration error:', error); // для отладки
+    console.error('Registration error:', error); 
     res.status(500).json({ message: error.message });
   }
 });

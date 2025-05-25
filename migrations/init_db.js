@@ -101,7 +101,6 @@ const createTestData = async () => {
     }
   ]);
 
-  // Создаем дату и время вместе в одном поле appointment_date
   const appointments = await AppointmentModel.bulkCreate([
     { 
       appointment_date: new Date('2025-05-26T10:00:00'), 

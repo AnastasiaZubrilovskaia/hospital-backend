@@ -7,10 +7,8 @@ const { check } = require('express-validator');
 
 router.use(authMiddleware);
 
-// Получить доступные слоты по доктору и дате
 router.get('/available/:doctorId/:date', appointmentController.getAvailableSlots);
 
-// Создать новую запись
 router.post(
   '/',
   validate([
@@ -22,13 +20,10 @@ router.post(
   appointmentController.createAppointment
 );
 
-// Получить все записи пациента
 router.get('/', appointmentController.getPatientAppointments);
 
-// Получить конкретную запись
 router.get('/:id', appointmentController.getAppointmentDetails);
 
-// Отменить запись
 router.delete('/:id', appointmentController.cancelAppointment);
 
 module.exports = router;

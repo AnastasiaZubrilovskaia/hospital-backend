@@ -55,13 +55,13 @@ class AnalyticsService {
           break;
         case 'week':
           groupBy = 'week';
-          dateFormat = '%Y-%W'; // Используем %W для номера недели в SQLite
+          dateFormat = '%Y-%W'; 
           break;
         case 'year':
           groupBy = 'year';
           dateFormat = '%Y';
           break;
-        default: // month
+        default: 
           groupBy = 'month';
           dateFormat = '%Y-%m';
       }

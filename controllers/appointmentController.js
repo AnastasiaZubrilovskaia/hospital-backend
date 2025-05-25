@@ -1,4 +1,4 @@
-const { Appointment, Doctor, Patient, Specialty} = require('../models'); // подкорректируй путь и импорт моделей под свою структуру
+const { Appointment, Doctor, Patient, Specialty} = require('../models'); 
 const { Op } = require('sequelize');
 
 const WORK_START = '09:00';
@@ -29,20 +29,20 @@ async function getAvailableSlots(req, res) {
 
     const dateObj = new Date(date);
     if (isNaN(dateObj.getTime())) {
-      return res.status(400).json({ error: 'Некорректная дата' });
+      return res.status(400).json({ error: 'Incorrect date' });
     }
 
     const doctor = await Doctor.findByPk(doctorId);
     if (!doctor) {
-      return res.status(404).json({ error: 'Доктор не найден' });
+      return res.status(404).json({ error: 'he doctor has not been found' });
     }
 
     // Начало и конец даты для фильтра
     const [year, month, day] = date.split('-').map(Number);
     const dayStart = new Date(year, month - 1, day, 0, 0, 0, 0);  // локальное время 00:00
-    const dayEnd = new Date(year, month - 1, day, 23, 59, 59, 999); // локальное время 23:59:59.999
+    const dayEnd = new Date(year, month - 1, day, 23, 59, 59, 999); // локальное время 23:59:59
 
-    // Получаем все записи доктора на эту дату (status = scheduled)
+    // Получаем все записи доктора на эту дату (status = scheduled (запланируемые))
     const appointments = await Appointment.findAll({
       where: {
         doctorId,
@@ -79,23 +79,23 @@ async function createAppointment(req, res) {
 
     const appointmentDateObj = new Date(appointment_date);
     if (isNaN(appointmentDateObj.getTime())) {
-      return res.status(400).json({ error: 'Некорректный формат даты и времени' });
+      return res.status(400).json({ error: 'Incorrect date and time format' });
     }
 
     const doctor = await Doctor.findByPk(doctorId);
     if (!doctor) {
-      return res.status(404).json({ error: 'Доктор не найден' });
+      return res.status(404).json({ error: 'The doctor has not been found' });
     }
 
-    // Проверяем, что время попадает в рабочий график
+    // Проверка, что время попадает в рабочий график
     const timeStr = formatTime(appointmentDateObj);
     const allSlots = generateTimeSlots(WORK_START, WORK_END);
 
     if (!allSlots.includes(timeStr)) {
-      return res.status(400).json({ error: 'Время вне рабочего графика' });
+      return res.status(400).json({ error: 'Time outside the work schedule' });
     }
 
-    // Проверяем, что слот не занят
+    // Проверка, что слот не занят
     const dayStart = new Date(appointmentDateObj);
     dayStart.setHours(0, 0, 0, 0);
     const dayEnd = new Date(appointmentDateObj);
@@ -110,7 +110,7 @@ async function createAppointment(req, res) {
     });
 
     if (existing) {
-      return res.status(400).json({ error: 'Этот слот уже занят' });
+      return res.status(400).json({ error: 'This slot is already occupied' });
     }
 
     const appointment = await Appointment.create({
@@ -163,13 +163,13 @@ async function getAppointmentDetails(req, res) {
       include: [
         {
           model: Doctor,
-          include: [Specialty]  // чтобы подтянулась специальность и сюда тоже
+          include: [Specialty]  
         }
       ]
     });
 
     if (!appointment) {
-      return res.status(404).json({ error: 'Запись не найдена' });
+      return res.status(404).json({ error: 'The record was not found' });
     }
 
     res.json(appointment);
@@ -189,11 +189,11 @@ async function cancelAppointment(req, res) {
     });
 
     if (!appointment) {
-      return res.status(404).json({ error: 'Запись не найдена' });
+      return res.status(404).json({ error: 'The record was not found' });
     }
 
     if (appointment.status === 'cancelled') {
-      return res.status(400).json({ error: 'Запись уже отменена' });
+      return res.status(400).json({ error: 'The recording has already been canceled' });
     }
 
     appointment.status = 'cancelled';
